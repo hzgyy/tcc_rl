@@ -12,3 +12,5 @@ data/
 .env
 release/model
 *.zip
+lav/trained_model/
+lav/__pycache__/

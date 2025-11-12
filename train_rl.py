@@ -302,6 +302,7 @@ class Workspace:
 
             if terminal:
                 num_episode += 1
+                print(f"warm up episode{num_episode}")
                 total_reward += self.train_env.episode_reward
                 if self.replay.size() < self.cfg.num_warm_up_episode:
                     self.replay.new_episode(obs)
@@ -356,6 +357,7 @@ class Workspace:
                     # reset env
                     obs, _ = self.train_env.reset()
                     self.replay.new_episode(obs)
+                    # print(self.global_step)
 
             ### logging ###
             if self.global_step % self.cfg.log_per_step == 0:

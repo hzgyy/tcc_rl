@@ -4,16 +4,16 @@ prop_stack: 3
 episode_length: 300
 stddev_max: 0.1
 mix_rl_rate: 0.5
-preload_num_data: 20
+preload_num_data: 5
 preload_datapath: "release/data/robomimic/square/processed_data96.hdf5"
-num_warm_up_episode: 25
-num_train_step: 300000
+num_warm_up_episode: 5
+num_train_step: 500
 replay_buffer_size: 1000
 use_wb: 1
 mp_eval: 0
-num_eval_episode: 20
+num_eval_episode: 5
 use_state: 0
-log_per_step: 10000
+log_per_step: 100
 q_agent:
   act_method: "rl"
   use_prop: 1
