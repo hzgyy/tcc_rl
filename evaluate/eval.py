@@ -3,7 +3,7 @@ import numpy as np
 from common_utils import Recorder, Stopwatch
 from common_utils import ibrl_utils as utils
 from env.robosuite_wrapper import PixelRobosuite
-
+from lav.progress import tensor_to_images
 
 def run_eval(
     env_params,
@@ -20,6 +20,7 @@ def run_eval(
     recorder = None if record_dir is None else Recorder(record_dir)
 
     env = PixelRobosuite(**env_params)
+    # img_buffer = []
     with torch.no_grad(), utils.eval_mode(agent):
         for episode_idx in range(num_game):
             step = 0
@@ -27,18 +28,20 @@ def run_eval(
             np.random.seed(seed + episode_idx)
             with stopwatch.time("reset"):
                 obs, image_obs = env.reset()
-
+                # img_buffer.append(image_obs["agentview"].unsqueeze(0)/255.0)
+            
             terminal = False
             while not terminal:
                 if recorder is not None:
                     recorder.add(image_obs)
+                
 
                 with stopwatch.time(f"act"):
                     action = agent.act(obs, eval_mode=eval_mode)
 
                 with stopwatch.time("step"):
                     obs, reward, terminal, _, image_obs = env.step(action)
-
+                # img_buffer.append(image_obs["agentview"].unsqueeze(0)/255.0)
                 rewards.append(reward)
                 step += 1
 
@@ -54,6 +57,9 @@ def run_eval(
 
             if recorder is not None:
                 recorder.save(f"episode{episode_idx}")
+            # img_tensor = torch.cat(img_buffer,axis=0)
+            # tensor_to_images(img_tensor,save_dir=f"/media/mani/Data/gyy_workspace/IBRL/ibrl/test/trained/vid_{episode_idx}")
+            # img_buffer = []
 
     if verbose:
         print(f"num game: {len(scores)}, seed: {seed}, score: {np.mean(scores)}")
@@ -69,8 +75,8 @@ if __name__ == "__main__":
     import time
     import common_utils
     import train_bc
-    import train_rl
-    from multi_process_eval import run_eval as mp_run_eval
+    import train_rl_new as train_rl
+    from .multi_process_eval import run_eval as mp_run_eval
     import rich.traceback
 
     # make logging more beautiful
@@ -89,7 +95,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", type=str, default="bc", help="bc/rl")
     parser.add_argument("--num_game", type=int, default=10)
     parser.add_argument("--record_dir", type=str, default=None)
-    parser.add_argument("--mp", type=int, default=10)
+    parser.add_argument("--mp", type=int, default=0)
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--verbose", type=int, default=1)
     parser.add_argument("--seed", type=int, default=1)
@@ -123,7 +129,6 @@ if __name__ == "__main__":
             env_params["camera_names"] = ["agentview", "robot0_eye_in_hand", "robot1_eye_in_hand"]
         else:
             env_params["camera_names"] = ["agentview", "robot0_eye_in_hand"]
-
     weight_scores = []
     all_scores = []
     for weight, agent, env_params in eval_items:

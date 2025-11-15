@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# import utils
-# from soft_dtw import SoftDTW
+from . import utils
+from .soft_dtw import SoftDTW
 
 def calc_distance_matrix(x, y):
     n = x.size(1)
@@ -15,73 +15,73 @@ def calc_distance_matrix(x, y):
     return dist# from . import functional_video as F
 
 
-# class Contrastive_IDM(nn.Module):
+class Contrastive_IDM(nn.Module):
 
-#     def __init__(self, sigma, margin, debug=False):
-#         super(Contrastive_IDM, self).__init__()
+    def __init__(self, sigma, margin, debug=False):
+        super(Contrastive_IDM, self).__init__()
 
-#         self.sigma = sigma
-#         self.margin = margin
-#         self.debug = debug
+        self.sigma = sigma
+        self.margin = margin
+        self.debug = debug
 
-#     def forward(self, dist, idx, seq_len, logger=None):
+    def forward(self, dist, idx, seq_len, logger=None):
 
-#         grid_x, grid_y = torch.meshgrid(idx, idx)
+        grid_x, grid_y = torch.meshgrid(idx, idx)
 
-#         prob = F.relu(self.margin - dist)
+        prob = F.relu(self.margin - dist)
 
-#         weights_orig = 1 + torch.pow(grid_x - grid_y, 2)
+        weights_orig = 1 + torch.pow(grid_x - grid_y, 2)
 
-#         diff = torch.abs(grid_x - grid_y) - (self.sigma / seq_len)
+        diff = torch.abs(grid_x - grid_y) - (self.sigma / seq_len)
         
-#         _ones = torch.ones_like(diff)
-#         _zeros = torch.zeros_like(diff)
-#         weights_neg = torch.where(diff > 0, weights_orig, _zeros)
+        _ones = torch.ones_like(diff)
+        _zeros = torch.zeros_like(diff)
+        weights_neg = torch.where(diff > 0, weights_orig, _zeros)
 
-#         weights_pos = torch.where(diff > 0, _zeros, _ones)
+        weights_pos = torch.where(diff > 0, _zeros, _ones)
 
-#         if not self.training and self.debug and logger:
-#             logger.experiment.add_image('idm_diff', utils.plot_to_image(diff), 0, dataformats='CHW')
-#             logger.experiment.add_image('idm_weights_pos', utils.plot_to_image(weights_pos), 0, dataformats='CHW')
-#             logger.experiment.add_image('idm_weights_neg', utils.plot_to_image(weights_neg), 0, dataformats='CHW')
-#             logger.experiment.add_image('idm_prob', utils.plot_to_image(prob), 0, dataformats='CHW')
+        if not self.training and self.debug and logger:
+            logger.experiment.add_image('idm_diff', utils.plot_to_image(diff), 0, dataformats='CHW')
+            logger.experiment.add_image('idm_weights_pos', utils.plot_to_image(weights_pos), 0, dataformats='CHW')
+            logger.experiment.add_image('idm_weights_neg', utils.plot_to_image(weights_neg), 0, dataformats='CHW')
+            logger.experiment.add_image('idm_prob', utils.plot_to_image(prob), 0, dataformats='CHW')
         
-#         idm = weights_neg * prob + weights_pos * dist
+        idm = weights_neg * prob + weights_pos * dist
 
-#         return torch.sum(idm), idm
+        return torch.sum(idm), idm
 
-# class LAV(nn.Module):
+class LAV(nn.Module):
 
-#     def __init__(self, alpha, sigma, margin, num_frames, dtw_gamma, dtw_normalize, debug=False):
-#         super(LAV, self).__init__()
+    def __init__(self, alpha, sigma, margin, num_frames, dtw_gamma, dtw_normalize, debug=False):
+        super(LAV, self).__init__()
 
-#         self.alpha = alpha
-#         self.debug = debug
-#         self.N = num_frames
+        self.alpha = alpha
+        self.debug = debug
+        self.N = num_frames
 
-#         self.dtw_loss = SoftDTW(gamma=dtw_gamma, normalize=dtw_normalize)
+        self.dtw_loss = SoftDTW(gamma=dtw_gamma, normalize=dtw_normalize)
 
-#         self.inverse_idm = Contrastive_IDM(sigma=sigma, margin=margin, debug=debug)
+        self.inverse_idm = Contrastive_IDM(sigma=sigma, margin=margin, debug=debug)
 
-#     def forward(self, a_emb, b_emb, a_idx, b_idx, a_len, b_len, logger=None):
+    def forward(self, a_emb, b_emb, a_idx, b_idx, a_len, b_len, logger=None):
 
-#         pos_loss = self.dtw_loss(a_emb, b_emb)
+        pos_loss = self.dtw_loss(a_emb, b_emb)
 
-#         # frame level loss
-#         dist_a = calc_distance_matrix(a_emb, a_emb).squeeze(0)
-#         dist_b = calc_distance_matrix(b_emb, b_emb).squeeze(0)
+        # frame level loss
+        dist_a = calc_distance_matrix(a_emb, a_emb).squeeze(0)
+        dist_b = calc_distance_matrix(b_emb, b_emb).squeeze(0)
 
-#         idm_a, _ = self.inverse_idm(dist_a, a_idx, a_len, logger=logger)
-#         idm_b, _ = self.inverse_idm(dist_b, b_idx, b_len, logger=logger)
+        idm_a, _ = self.inverse_idm(dist_a, a_idx, a_len, logger=logger)
+        idm_b, _ = self.inverse_idm(dist_b, b_idx, b_len, logger=logger)
 
-#         total_loss = pos_loss + self.alpha * (idm_a + idm_b)
-#         total_loss = total_loss / self.N
+        total_loss = pos_loss + self.alpha * (idm_a + idm_b)
+        total_loss = total_loss / self.N
 
-#         if not self.training and self.debug and logger:
-#             logger.experiment.add_image('dist_a', utils.plot_to_image(dist_a), 0, dataformats='CHW')
-#             logger.experiment.add_image('dist_b', utils.plot_to_image(dist_b), 0, dataformats='CHW')
+        if not self.training and self.debug and logger:
+            logger.experiment.add_image('dist_a', utils.plot_to_image(dist_a), 0, dataformats='CHW')
+            logger.experiment.add_image('dist_b', utils.plot_to_image(dist_b), 0, dataformats='CHW')
 
-#         return total_loss
+        return total_loss
 
 class TCC(nn.Module):
 

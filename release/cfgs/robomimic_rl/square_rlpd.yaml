@@ -4,7 +4,7 @@ prop_stack: 3
 episode_length: 300
 stddev_max: 0.1
 mix_rl_rate: 0.5
-preload_num_data: 20
+preload_num_data: 10
 preload_datapath: "release/data/robomimic/square/processed_data96.hdf5"
 num_warm_up_episode: 25
 num_train_step: 300000
@@ -14,6 +14,11 @@ mp_eval: 0
 num_eval_episode: 20
 use_state: 0
 log_per_step: 10000
+est_ckpt_path: "/media/mani/Data/gyy_workspace/IBRL/ibrl/lav/trained_model/final_model_l2norm-True_sigma-10_alpha-0.5_lr-0.0001_bs-4.pth"
+img_demo_path: "/media/mani/Data/gyy_workspace/IBRL/ibrl/release/data/robomimic/square224/"
+pretrain_num_epoch: 0
+pretrain_epoch_len: 1500
+load_pretrained_agent: "/media/mani/Data/gyy_workspace/IBRL/ibrl/exps/rl/run_with_bc/model0.pt"
 q_agent:
   act_method: "rl"
   use_prop: 1
@@ -26,3 +31,4 @@ q_agent:
   critic:
     spatial_emb: 1024
     hidden_dim: 1024
+save_dir: "exps/rl/run_with_pretrain"

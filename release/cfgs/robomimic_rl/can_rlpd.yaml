@@ -1,18 +1,20 @@
 task_name: "PickPlaceCan"
-rl_camera: "robot0_eye_in_hand"
+rl_camera: "agentview"
 prop_stack: 3
 episode_length: 200
 stddev_max: 0.1
 mix_rl_rate: 0.5
 preload_num_data: 10
 preload_datapath: "release/data/robomimic/can/processed_data96.hdf5"
-num_warm_up_episode: 40
+num_warm_up_episode: 25
 num_train_step: 200000
 replay_buffer_size: 1000
 use_wb: 1
-mp_eval: 1
-num_eval_episode: 50
+mp_eval: 0
+num_eval_episode: 20
 use_state: 0
+est_ckpt_path: "/media/mani/Data/gyy_workspace/IBRL/ibrl/lav/trained_model/final_model_l2norm-True_sigma-10_alpha-0.5_lr-0.0001_bs-4.pth"
+img_demo_path: "/media/mani/Data/gyy_workspace/IBRL/ibrl/release/data/robomimic/square224/"
 q_agent:
   act_method: "rl"
   use_prop: 1

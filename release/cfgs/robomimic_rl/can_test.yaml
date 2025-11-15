@@ -1,19 +1,18 @@
-task_name: "NutAssemblySquare"
+task_name: "PickPlaceCan"
 rl_camera: "agentview"
-prop_stack: 2
-episode_length: 300
+prop_stack: 3
+episode_length: 200
 stddev_max: 0.1
 mix_rl_rate: 0.5
 preload_num_data: 5
-preload_datapath: "release/data/robomimic/square/processed_data96.hdf5"
-num_warm_up_episode: 1
-num_train_step: 500
+preload_datapath: "release/data/robomimic/can/processed_data96.hdf5"
+num_warm_up_episode: 5
+num_train_step: 200000
 replay_buffer_size: 1000
 use_wb: 0
 mp_eval: 0
-num_eval_episode: 5
+num_eval_episode: 20
 use_state: 0
-log_per_step: 100
 est_ckpt_path: "/media/mani/Data/gyy_workspace/IBRL/ibrl/lav/trained_model/final_model_l2norm-True_sigma-10_alpha-0.5_lr-0.0001_bs-4.pth"
 img_demo_path: "/media/mani/Data/gyy_workspace/IBRL/ibrl/release/data/robomimic/square224/"
 q_agent:

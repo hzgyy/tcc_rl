@@ -14,3 +14,5 @@ release/model
 *.zip
 lav/trained_model/
 lav/__pycache__/
+temp_data/
+test/

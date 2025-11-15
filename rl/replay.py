@@ -99,7 +99,9 @@ class ReplayBuffer:
         reward: float,
         terminal: bool,
         success: bool,
-        image_obs: dict[str, torch.Tensor],
+        image_obs = None,
+        trans_rewards = None,
+        # image_obs: dict[str, torch.Tensor],
     ):
         self.episode.push_action(reply)
         self.episode.push_reward(reward)
@@ -108,7 +110,9 @@ class ReplayBuffer:
         if not terminal:
             self.episode.push_obs(obs)
             return
-
+        if trans_rewards is not None:
+            # print("rewrite rewards!!!!!!!!!!")
+            self.episode.reset_rewards(np.float32(trans_rewards))
         self._push_episode(success)
 
     def _push_episode(self, success):
@@ -241,7 +245,12 @@ def add_demos_to_replay(
         rewards = np.array(f[f"data/{episode_tag}/rewards"])  # type: ignore
         if is_demo:
             assert rewards[-1] == 1
-            terminals = rewards
+            terminals = rewards.copy()
+            #reshape rewards
+            first_one_index = (rewards == 1).argmax()
+            rewards[:first_one_index] = np.arange(first_one_index)/first_one_index
+            rewards[:first_one_index] = rewards[1:first_one_index+1] - rewards[:first_one_index]
+            # assert False, rewards
         else:
             terminals = rewards[:]
             terminals[-1] = 1
@@ -283,7 +292,6 @@ def add_demos_to_replay(
             reward = float(rewards[action_idx]) * reward_scale
             success = bool(rewards[action_idx] == 1)
             terminal = bool(terminals[action_idx])
-
             replay.add(obs, reply, reward, terminal, success, image_obs={})
 
             if success:
